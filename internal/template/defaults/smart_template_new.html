@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .Header.Title }}</title>
+</head>
+<body>
+
+{{ if .Header.Logo }}
+{{ .Header.Logo }}"
+{{ end }}
+
+<h1>{{ .Header.Title }}</h1>
+<p><i>{{ .Header.Subtitle }}</i></p>
+<p>{{ .Header.Explanation }}</p>
+
+<!-- First chart - managing chart separately -->
+{{ with index .Charts 0 }}
+{{ if .Title }}
+<h3>{{ .Title }}</h3>
+{{ end }}
+{{ .Tag }}
+{{ if .Description }}
+<p><em>{{ .Description }}</em></p>
+{{ end }}
+{{ end }}
+
+<h2>Report Data</h2>
+<table>
+    <tr>
+        <th>Key</th>
+        <th>Value</th>
+    </tr>
+    {{ range $key, $value := .Data }}
+    <tr>
+        <td>{{ $key }}</td>
+        <td>{{ $value }}</td>
+    </tr>
+    {{ end }}
+</table>
+
+{{ range $i, $c := .Charts }}
+{{ if gt $i 0 }}
+{{ if $c.Title }}
+<h3>{{ $c.Title }}</h3>
+{{ end }}
+{{ $c.Tag }}
+{{ if $c.Description }}
+<p><em>{{ $c.Description }}</em></p>
+{{ end }}
+{{ end }}
+{{ end }}
+
+<div class="footer">{{ .Footer.Note }}</div>
+</body>
+</html>
