@@ -1,3 +1,4 @@
+// File: renderer/fonts.go
 package renderer
 
 import (
@@ -9,12 +10,21 @@ import (
 	"runtime"
 )
 
+// FontPaths represents the file paths for the regular, bold, and italic font variants.
 type FontPaths struct {
 	Regular string
 	Bold    string
 	Italic  string
 }
 
+// findFontPaths returns the full paths to font files located in the assets directory.
+//
+// It infers the base directory relative to this file's location and looks for:
+//   - LiberationSans-Regular.ttf
+//   - LiberationSans-Bold.ttf
+//   - LiberationSans-Italic.ttf
+//
+// If a font file is not found, it logs a warning and returns an empty string for that font.
 func findFontPaths() (FontPaths, error) {
 	_, currentFile, _, ok := runtime.Caller(0)
 	if !ok {
@@ -40,6 +50,10 @@ func findFontPaths() (FontPaths, error) {
 	}, nil
 }
 
+// SetFont applies a dynamic font style (regular, bold, italic, or bold-italic) to the PDF context.
+//
+// It assumes the font family is named "Arial" (registered via AddTTFFontWithOption).
+// This function chooses the correct style string based on the italic and bold flags.
 func SetFont(pdf *gopdf.GoPdf, italic, bold bool) {
 	style := ""
 	if bold {

@@ -1,3 +1,4 @@
+// File: renderer/init.go
 package renderer
 
 import (
@@ -5,6 +6,11 @@ import (
 	"github.com/signintech/gopdf"
 )
 
+// NewRenderer initializes a new PDF renderer with the specified font sizes and
+// page number visibility. It loads standard Arial fonts and sets the default
+// font size for body text.
+//
+// Returns a Renderer instance ready to write PDF content.
 func NewRenderer(fontSizes FontSizes, showPageNumber bool) (*Renderer, error) {
 	pdf := &gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{PageSize: *gopdf.PageSizeA4})
@@ -15,6 +21,7 @@ func NewRenderer(fontSizes FontSizes, showPageNumber bool) (*Renderer, error) {
 		return nil, err
 	}
 
+	// Load fonts with styles
 	if err := pdf.AddTTFFontWithOption("Arial", fonts.Regular, gopdf.TtfOption{Style: gopdf.Regular}); err != nil {
 		return nil, fmt.Errorf("regular font: %w", err)
 	}
@@ -37,6 +44,21 @@ func NewRenderer(fontSizes FontSizes, showPageNumber bool) (*Renderer, error) {
 	}, nil
 }
 
+// NewRendererWithBase64Images creates a new Renderer and overlays background,
+// header, and footer images from base64 strings.
+//
+// The images are saved to temporary files and rendered immediately.
+// This function is useful when generating branded or templated reports
+// with header/footer banners.
+//
+// Parameters:
+// - bgBase64: base64-encoded background image (optional)
+// - headerBase64: base64-encoded header image (optional)
+// - footerBase64: base64-encoded footer image (optional)
+// - fontSizes: custom font size configuration
+// - showPageNumber: whether to render page numbers
+//
+// Returns a fully initialized Renderer.
 func NewRendererWithBase64Images(bgBase64, headerBase64, footerBase64 string, fontSizes FontSizes, showPageNumber bool) (*Renderer, error) {
 	bgPath := mustSaveBase64ToTempFile(bgBase64)
 	headerPath := mustSaveBase64ToTempFile(headerBase64)
@@ -51,6 +73,7 @@ func NewRendererWithBase64Images(bgBase64, headerBase64, footerBase64 string, fo
 	r.headerImg = headerPath
 	r.footerImg = footerPath
 
+	// Draw background and header/footer images on the first page
 	if bgPath != "" {
 		_ = r.pdf.Image(bgPath, 0, 0, &gopdf.Rect{W: 595.28, H: 841.89})
 	}

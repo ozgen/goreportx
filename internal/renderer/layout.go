@@ -1,3 +1,4 @@
+// File: renderer/layout.go
 package renderer
 
 import (
@@ -10,6 +11,8 @@ import (
 	"github.com/signintech/gopdf"
 )
 
+// walk recursively traverses an HTML node tree and renders
+// supported elements such as h1–h3, p, table, img, and br to the PDF.
 func (r *Renderer) walk(n *html.Node) {
 	if n.Type == html.ElementNode {
 		switch n.Data {
@@ -17,10 +20,8 @@ func (r *Renderer) walk(n *html.Node) {
 			text := GetTextContent(n)
 			r.checkPageBreak(30)
 			_ = r.pdf.SetFont("Arial", "", r.FontSize.H1)
-			pageW := 595.28
 			textW, _ := r.pdf.MeasureTextWidth(text)
-			centerX := (pageW - textW) / 2
-			r.pdf.SetX(centerX)
+			r.pdf.SetX((595.28 - textW) / 2)
 			r.pdf.SetY(r.y)
 			r.pdf.Cell(nil, text)
 			r.y += 30
@@ -44,90 +45,16 @@ func (r *Renderer) walk(n *html.Node) {
 			r.y += 20
 
 		case "p":
-			chunks := GetStyledTextChunks(n)
-			lineHeight := 16.0
-			maxWidth := 495.0
-
-			currentLine := ""
-			currentItalic := true
-			currentBold := false
-
-			flushLine := func() {
-				if currentLine != "" {
-					r.checkPageBreak(lineHeight)
-					r.pdf.SetX(50)
-					r.pdf.SetY(r.y)
-					SetFont(r.pdf, currentItalic, currentBold)
-					r.pdf.Cell(nil, currentLine)
-					r.y += lineHeight
-				}
-			}
-
-			for _, chunk := range chunks {
-				words := strings.Fields(chunk.Text)
-				for _, word := range words {
-					testLine := strings.TrimSpace(currentLine + " " + word)
-					width, _ := r.pdf.MeasureTextWidth(testLine)
-
-					if width > maxWidth || (chunk.Italic != currentItalic || chunk.Bold != currentBold) {
-						flushLine()
-						currentLine = word
-						currentItalic = chunk.Italic
-						currentBold = chunk.Bold
-					} else {
-						if currentLine != "" {
-							currentLine += " "
-						}
-						currentLine += word
-					}
-				}
-			}
-
-			flushLine()
-			r.y += 4
+			r.renderParagraph(n)
 
 		case "table":
 			r.renderTable(n)
 
 		case "br":
-			// Line break (space)
-			r.y += 10
+			r.y += 10 // handle line breaks with vertical space
 
 		case "img":
-
-			var src string
-			for _, attr := range n.Attr {
-				if attr.Key == "src" {
-					src = attr.Val
-				}
-			}
-
-			// Default alignment
-			align := "left"
-
-			// Check parent node's style for alignment
-			if n.Parent != nil {
-				for _, attr := range n.Parent.Attr {
-					if attr.Key == "style" {
-						if strings.Contains(attr.Val, "text-align: center") {
-							align = "center"
-						} else if strings.Contains(attr.Val, "text-align: right") {
-							align = "right"
-						}
-					}
-				}
-			}
-
-			// Handle base64 or file images
-			if strings.HasPrefix(src, "file://") {
-				path := strings.TrimPrefix(src, "file://")
-				r.drawAlignedImage(path, align)
-			} else if strings.HasPrefix(src, "data:image/") {
-				if path, err := saveBase64ImageToTempFile(src); err == nil {
-					r.drawAlignedImage(path, align)
-					os.Remove(path)
-				}
-			}
+			r.renderImage(n)
 		}
 	}
 
@@ -136,6 +63,87 @@ func (r *Renderer) walk(n *html.Node) {
 	}
 }
 
+// renderParagraph processes a <p> element and wraps styled text into lines.
+func (r *Renderer) renderParagraph(n *html.Node) {
+	chunks := GetStyledTextChunks(n)
+	lineHeight := 16.0
+	maxWidth := 495.0
+
+	currentLine := ""
+	currentItalic := true
+	currentBold := false
+
+	flushLine := func() {
+		if currentLine != "" {
+			r.checkPageBreak(lineHeight)
+			r.pdf.SetX(50)
+			r.pdf.SetY(r.y)
+			SetFont(r.pdf, currentItalic, currentBold)
+			r.pdf.Cell(nil, currentLine)
+			r.y += lineHeight
+		}
+	}
+
+	for _, chunk := range chunks {
+		words := strings.Fields(chunk.Text)
+		for _, word := range words {
+			testLine := strings.TrimSpace(currentLine + " " + word)
+			width, _ := r.pdf.MeasureTextWidth(testLine)
+
+			if width > maxWidth || chunk.Italic != currentItalic || chunk.Bold != currentBold {
+				flushLine()
+				currentLine = word
+				currentItalic = chunk.Italic
+				currentBold = chunk.Bold
+			} else {
+				if currentLine != "" {
+					currentLine += " "
+				}
+				currentLine += word
+			}
+		}
+	}
+	flushLine()
+	r.y += 4
+}
+
+// renderImage processes an <img> element, extracting alignment and base64/file path.
+func (r *Renderer) renderImage(n *html.Node) {
+	var src string
+	for _, attr := range n.Attr {
+		if attr.Key == "src" {
+			src = attr.Val
+			break
+		}
+	}
+	align := "left"
+	if n.Parent != nil {
+		for _, attr := range n.Parent.Attr {
+			if attr.Key == "style" {
+				if strings.Contains(attr.Val, "text-align: center") {
+					align = "center"
+				} else if strings.Contains(attr.Val, "text-align: right") {
+					align = "right"
+				}
+			}
+		}
+	}
+
+	if strings.HasPrefix(src, "file://") {
+		path := strings.TrimPrefix(src, "file://")
+		r.drawAlignedImage(path, align)
+	} else if strings.HasPrefix(src, "data:image/") {
+		if path, err := saveBase64ImageToTempFile(src); err == nil {
+			r.drawAlignedImage(path, align)
+			err := os.Remove(path)
+			if err != nil {
+				return
+			}
+		}
+	}
+}
+
+// drawAlignedImage renders an image with specified horizontal alignment.
 func (r *Renderer) drawAlignedImage(path, align string) {
 	imgW := 100.0
 	imgH := 60.0
@@ -150,8 +158,7 @@ func (r *Renderer) drawAlignedImage(path, align string) {
 		x = 50
 	}
 
-	err := r.pdf.Image(path, x, r.y, &gopdf.Rect{W: imgW, H: imgH})
-	if err != nil {
+	if err := r.pdf.Image(path, x, r.y, &gopdf.Rect{W: imgW, H: imgH}); err != nil {
 		log.Println("Image render failed:", err)
 	} else {
 		log.Printf("Image rendered (%s): %s", align, path)
@@ -160,6 +167,7 @@ func (r *Renderer) drawAlignedImage(path, align string) {
 	r.checkPageBreak(30)
 }
 
+// flushPage finishes the current page, adds footer/timestamp, and starts a new page.
 func (r *Renderer) flushPage() {
 	r.drawFooterAtFixedPosition()
 	r.pdf.AddPage()
@@ -180,12 +188,9 @@ func (r *Renderer) flushPage() {
 	r.drawTimestamp()
 }
 
+// drawFooterAtFixedPosition draws static footer and page number at the bottom of each page.
 func (r *Renderer) drawFooterAtFixedPosition() {
-	log.Println("footer:", r.footerText)
-
 	if r.footerText != "" {
-		log.Println("footer: %v", r.footerText)
-
 		_ = r.pdf.SetFont("Arial", "", r.FontSize.Footer)
 		r.pdf.SetY(820)
 		r.pdf.SetX(50)
@@ -199,6 +204,8 @@ func (r *Renderer) drawFooterAtFixedPosition() {
 	}
 }
 
+// checkPageBreak checks if the current y-position plus upcoming block height
+// will overflow the page, and triggers a flushPage if so.
 func (r *Renderer) checkPageBreak(nextBlockHeight float64) {
 	if r.y+nextBlockHeight > contentLimit {
 		log.Println("Page break triggered")
@@ -206,12 +213,14 @@ func (r *Renderer) checkPageBreak(nextBlockHeight float64) {
 	}
 }
 
+// renderTable walks through the table node and renders its rows.
 func (r *Renderer) renderTable(n *html.Node) {
 	_ = r.pdf.SetFont("Arial", "", r.FontSize.P)
 	r.walkTableRows(n)
 	r.y += 10
 }
 
+// walkTableRows traverses table rows and renders each.
 func (r *Renderer) walkTableRows(n *html.Node) {
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		if c.Type == html.ElementNode {
@@ -219,13 +228,13 @@ func (r *Renderer) walkTableRows(n *html.Node) {
 				r.checkPageBreak(30)
 				r.renderTableRow(c)
 			} else {
-				// keep looking inside <thead>, <tbody>, etc.
 				r.walkTableRows(c)
 			}
 		}
 	}
 }
 
+// renderTableRow renders a single table row with dynamic height and column width.
 func (r *Renderer) renderTableRow(tr *html.Node) {
 	x := 50.0
 	lineHeight := 14.0
@@ -235,7 +244,6 @@ func (r *Renderer) renderTableRow(tr *html.Node) {
 	}
 	colWidth := (595.28 - 100) / float64(numCols)
 
-	// Calculate max line count per cell
 	maxLines := 1
 	cellTexts := []string{}
 	for td := tr.FirstChild; td != nil; td = td.NextSibling {
@@ -251,7 +259,6 @@ func (r *Renderer) renderTableRow(tr *html.Node) {
 	rowHeight := float64(maxLines) * lineHeight
 	r.checkPageBreak(rowHeight)
 
-	// Header font
 	isHeader := tr.FirstChild != nil && tr.FirstChild.Data == "th"
 	if isHeader {
 		_ = r.pdf.SetFont("Arial", "B", r.FontSize.P)
@@ -259,7 +266,6 @@ func (r *Renderer) renderTableRow(tr *html.Node) {
 		_ = r.pdf.SetFont("Arial", "", r.FontSize.P)
 	}
 
-	// Draw cells
 	x = 50.0
 	startY := r.y
 	for _, text := range cellTexts {
@@ -275,6 +281,7 @@ func (r *Renderer) renderTableRow(tr *html.Node) {
 	r.y += rowHeight
 }
 
+// countColumns counts how many <td> or <th> elements are in a given <tr>.
 func countColumns(tr *html.Node) int {
 	count := 0
 	for td := tr.FirstChild; td != nil; td = td.NextSibling {
@@ -285,12 +292,13 @@ func countColumns(tr *html.Node) int {
 	return count
 }
 
+// drawTimestamp renders a timestamp string in the top-right of the page if set.
 func (r *Renderer) drawTimestamp() {
 	if r.TopRightTimestamp == "" {
 		return
 	}
 	_ = r.pdf.SetFont("Arial", "", r.FontSize.Footer)
-	r.pdf.SetX(490) // adjust if needed
-	r.pdf.SetY(30)  // adjust vertical position if needed
+	r.pdf.SetX(490)
+	r.pdf.SetY(30)
 	r.pdf.Cell(nil, r.TopRightTimestamp)
 }
