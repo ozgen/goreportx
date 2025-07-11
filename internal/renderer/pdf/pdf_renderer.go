@@ -6,6 +6,7 @@ import (
 	"github.com/ozgen/goreportx/internal/renderer"
 	"html/template"
 	"log"
+	"os"
 	"time"
 )
 
@@ -67,8 +68,13 @@ func (p *PDFRenderer) Render(filename string) ([]byte, error) {
 		log.Println("time : ", r.TopRightTimestamp)
 	}
 
-	err = r.RenderHTMLLike(buf.String(), filename)
-	return nil, err
+	buffer, err := r.RenderHTMLLikeToBuffer(buf.String())
+	if filename != "" {
+		if err := os.WriteFile(filename, buffer.Bytes(), 0644); err != nil {
+			return nil, err
+		}
+	}
+	return buffer.Bytes(), nil
 }
 
 func (p *PDFRenderer) WithTimestamp(enabled bool) interfaces.RendererInterface {
