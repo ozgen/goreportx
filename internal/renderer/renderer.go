@@ -27,14 +27,15 @@ type FontSizes struct {
 }
 
 type Renderer struct {
-	pdf            *gopdf.GoPdf
-	y              float64
-	pageWidth      float64
-	footerText     string
-	pageNumber     int
-	showPageNumber bool
-	backgroundImg  string
-	headerImg      string
-	footerImg      string
-	FontSize       FontSizes
+	pdf               *gopdf.GoPdf
+	y                 float64
+	pageWidth         float64
+	footerText        string
+	pageNumber        int
+	showPageNumber    bool
+	backgroundImg     string
+	headerImg         string
+	footerImg         string
+	FontSize          FontSizes
+	TopRightTimestamp string
 }

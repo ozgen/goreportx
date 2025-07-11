@@ -2,6 +2,10 @@ package models
 
 import "html/template"
 
+/*
+*
+This is example data Model of Report
+*/
 type Chart struct {
 	Tag         template.HTML `json:"tag"`
 	Align       string        `json:"align"` // "left", "center", or "right"

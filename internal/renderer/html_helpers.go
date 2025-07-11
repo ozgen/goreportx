@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"github.com/signintech/gopdf"
 	"html/template"
 	"io"
 	"log"
@@ -12,6 +13,14 @@ import (
 	"strings"
 
 	"golang.org/x/net/html"
+)
+
+type Alignment string
+
+const (
+	AlignLeft   Alignment = "left"
+	AlignCenter Alignment = "center"
+	AlignRight  Alignment = "right"
 )
 
 func GetTextContent(n *html.Node) string {
@@ -52,17 +61,23 @@ func GetStyledTextChunks(n *html.Node) []TextChunk {
 	return chunks
 }
 
-func WrapLogoAsHTML(logoBase64, align string) template.HTML {
+func WrapLogoAsHTML(logoBase64 string, align Alignment) template.HTML {
 	if logoBase64 == "" {
 		return ""
 	}
 	if align == "" {
-		align = "left"
+		align = AlignLeft
 	}
 	return template.HTML(fmt.Sprintf(`<div style="text-align: %s;"><img src="%s" style="max-height: 60px;" /></div>`, align, logoBase64))
 }
 
-func WrapChartAsHTML(imgBase64, align string) template.HTML {
+func WrapChartAsHTML(imgBase64 string, align Alignment) template.HTML {
+	if imgBase64 == "" {
+		return ""
+	}
+	if align == "" {
+		align = AlignLeft
+	}
 	return template.HTML(fmt.Sprintf(
 		`<div style="text-align: %s;"><img src="%s" style="max-height: 300px;" /></div>`,
 		align, imgBase64,
@@ -104,4 +119,28 @@ func LoadImageBase64(path string) string {
 
 	encoded := base64.StdEncoding.EncodeToString(data)
 	return "data:" + mimeType + ";base64," + encoded
+}
+
+func wrapText(pdf *gopdf.GoPdf, text string, maxWidth float64) []string {
+	words := strings.Fields(text)
+	lines := []string{}
+	current := ""
+
+	for _, word := range words {
+		test := strings.TrimSpace(current + " " + word)
+		width, _ := pdf.MeasureTextWidth(test)
+		if width > maxWidth && current != "" {
+			lines = append(lines, current)
+			current = word
+		} else {
+			if current != "" {
+				current += " "
+			}
+			current += word
+		}
+	}
+	if current != "" {
+		lines = append(lines, current)
+	}
+	return lines
 }

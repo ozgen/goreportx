@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .Header.Title }}</title>
+</head>
+<body>
+
+<!-- Logo -->
+{{ if .Header.Logo }}
+{{ .Header.Logo }}
+{{ end }}
+
+<!-- Header Info -->
+<h1>{{ .Header.Title }}</h1>
+<p><i>{{ .Header.Subtitle }}</i></p>
+<p>{{ .Header.Explanation }}</p>
+
+<!-- Chart -->
+{{ if .Chart.Title }}<h3>{{ .Chart.Title }}</h3>{{ end }}
+{{ .Chart.Image }}
+{{ if .Chart.Description }}<p><em>{{ .Chart.Description }}</em></p>{{ end }}
+
+
+<!-- Footer -->
+<div class="footer">{{ .Footer.Note }}</div>
+</body>
+</html>

@@ -15,6 +15,7 @@ func (r *Renderer) RenderHTMLLike(content string, output string) error {
 	r.extractFooterText(doc)
 	r.walk(doc)
 	r.drawFooterAtFixedPosition()
+	r.drawTimestamp()
 
 	return r.pdf.WritePdf(output)
 }

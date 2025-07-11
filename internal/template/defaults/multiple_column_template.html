@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .Header.Title }}</title>
+</head>
+<body>
+
+{{ if .Header.Logo }}
+{{ .Header.Logo }}
+{{ end }}
+
+<h1>{{ .Header.Title }}</h1>
+<p><i>{{ .Header.Subtitle }}</i></p>
+<p>{{ .Header.Explanation }}</p>
+
+<h2>Data Table</h2>
+<table>
+    <tr>
+        {{ range .ColumnHeaders }}
+        <th>{{ . }}</th>
+        {{ end }}
+    </tr>
+    {{ range .Rows }}
+    <tr>
+        {{ range . }}
+        <td>{{ . }}</td>
+        {{ end }}
+    </tr>
+    {{ end }}
+</table>
+
+<br>
+<br>
+<br>
+{{ if .Chart.Title }}
+<h3>{{ .Chart.Title }}</h3>
+{{ end }}
+{{ .Chart.Image }}
+{{ if .Chart.Description }}
+<p><em>{{ .Chart.Description }}</em></p>
+{{ end }}
+
+<div class="footer">{{ .Footer.Note }}</div>
+</body>
+</html>

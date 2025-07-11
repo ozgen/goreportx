@@ -89,6 +89,10 @@ func (r *Renderer) walk(n *html.Node) {
 		case "table":
 			r.renderTable(n)
 
+		case "br":
+			// Line break (space)
+			r.y += 10
+
 		case "img":
 
 			var src string
@@ -172,6 +176,8 @@ func (r *Renderer) flushPage() {
 	if r.footerImg != "" {
 		_ = r.pdf.Image(r.footerImg, 50, 800, &gopdf.Rect{W: 495.0, H: 30.0})
 	}
+
+	r.drawTimestamp()
 }
 
 func (r *Renderer) drawFooterAtFixedPosition() {
@@ -222,19 +228,31 @@ func (r *Renderer) walkTableRows(n *html.Node) {
 
 func (r *Renderer) renderTableRow(tr *html.Node) {
 	x := 50.0
-	startY := r.y
-	rowHeight := 20.0
-	colWidth := 250.0
+	lineHeight := 14.0
+	numCols := countColumns(tr)
+	if numCols == 0 {
+		return
+	}
+	colWidth := (595.28 - 100) / float64(numCols)
 
-	// Determine if it's a header row
-	isHeader := false
-	for c := tr.FirstChild; c != nil; c = c.NextSibling {
-		if c.Type == html.ElementNode && c.Data == "th" {
-			isHeader = true
-			break
+	// Calculate max line count per cell
+	maxLines := 1
+	cellTexts := []string{}
+	for td := tr.FirstChild; td != nil; td = td.NextSibling {
+		if td.Type == html.ElementNode && (td.Data == "td" || td.Data == "th") {
+			text := GetTextContent(td)
+			cellTexts = append(cellTexts, text)
+			lines := wrapText(r.pdf, text, colWidth-8)
+			if len(lines) > maxLines {
+				maxLines = len(lines)
+			}
 		}
 	}
+	rowHeight := float64(maxLines) * lineHeight
+	r.checkPageBreak(rowHeight)
 
+	// Header font
+	isHeader := tr.FirstChild != nil && tr.FirstChild.Data == "th"
 	if isHeader {
 		_ = r.pdf.SetFont("Arial", "B", r.FontSize.P)
 	} else {
@@ -242,19 +260,37 @@ func (r *Renderer) renderTableRow(tr *html.Node) {
 	}
 
 	// Draw cells
+	x = 50.0
+	startY := r.y
+	for _, text := range cellTexts {
+		r.pdf.RectFromUpperLeftWithStyle(x, startY, colWidth, rowHeight, "D")
+		lines := wrapText(r.pdf, text, colWidth-8)
+		for j, line := range lines {
+			r.pdf.SetX(x + 4)
+			r.pdf.SetY(startY + float64(j)*lineHeight + 2)
+			r.pdf.Cell(nil, line)
+		}
+		x += colWidth
+	}
+	r.y += rowHeight
+}
+
+func countColumns(tr *html.Node) int {
+	count := 0
 	for td := tr.FirstChild; td != nil; td = td.NextSibling {
 		if td.Type == html.ElementNode && (td.Data == "td" || td.Data == "th") {
-			text := GetTextContent(td)
-
-			// Draw border
-			r.pdf.RectFromUpperLeftWithStyle(x, startY, colWidth, rowHeight, "D")
-			r.pdf.SetX(x + 4)
-			r.pdf.SetY(startY + 6)
-			r.pdf.CellWithOption(&gopdf.Rect{W: colWidth - 8, H: rowHeight}, text, gopdf.CellOption{Align: gopdf.Left})
-
-			x += colWidth
+			count++
 		}
 	}
+	return count
+}
 
-	r.y += rowHeight
+func (r *Renderer) drawTimestamp() {
+	if r.TopRightTimestamp == "" {
+		return
+	}
+	_ = r.pdf.SetFont("Arial", "", r.FontSize.Footer)
+	r.pdf.SetX(490) // adjust if needed
+	r.pdf.SetY(30)  // adjust vertical position if needed
+	r.pdf.Cell(nil, r.TopRightTimestamp)
 }

@@ -3,23 +3,27 @@ package pdf
 import (
 	"bytes"
 	"github.com/ozgen/goreportx/internal/interfaces"
-	"github.com/ozgen/goreportx/internal/models"
 	"github.com/ozgen/goreportx/internal/renderer"
 	"html/template"
+	"log"
+	"time"
 )
 
 type PDFRenderer struct {
-	Report          models.Report
-	Template        *template.Template
-	FontSizes       renderer.FontSizes
-	UseImages       bool
-	HeaderImgBase64 string
-	FooterImgBase64 string
-	BaseImgBase64   string
+	Report            interface{}
+	Template          *template.Template
+	FontSizes         renderer.FontSizes
+	UseImages         bool
+	HeaderImgBase64   string
+	FooterImgBase64   string
+	BaseImgBase64     string
+	includeTimestamp  bool
+	timestampFormat   string
+	TopRightTimestamp string
 }
 
 func NewPDFRenderer(
-	report models.Report,
+	report interface{},
 	tmpl *template.Template,
 	fontSizes renderer.FontSizes,
 	useImages bool,
@@ -53,11 +57,26 @@ func (p *PDFRenderer) Render(filename string) ([]byte, error) {
 		return nil, err
 	}
 
-	// 3. Create in-memory PDF
-	var outBuf bytes.Buffer
-	if err := r.RenderHTMLLike(buf.String(), filename); err != nil {
-		return nil, err
+	// Add timestamp to top-right if enabled
+	if p.includeTimestamp {
+		format := p.timestampFormat
+		if format == "" {
+			format = "2006-01-02 15:04:05"
+		}
+		r.TopRightTimestamp = time.Now().Format(format)
+		log.Println("time : ", r.TopRightTimestamp)
 	}
 
-	return outBuf.Bytes(), nil
+	err = r.RenderHTMLLike(buf.String(), filename)
+	return nil, err
+}
+
+func (p *PDFRenderer) WithTimestamp(enabled bool) interfaces.RendererInterface {
+	p.includeTimestamp = enabled
+	return p
+}
+
+func (p *PDFRenderer) SetTimestampFormat(format string) interfaces.RendererInterface {
+	p.timestampFormat = format
+	return p
 }
