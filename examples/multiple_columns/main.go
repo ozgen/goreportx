@@ -50,7 +50,7 @@ func main() {
 	)
 
 	// Render PDF
-	_, err = pdfRenderer.Render("output-multi.pdf")
+	_, err = pdfRenderer.Render("examples/outputs/output-multi.pdf")
 	if err != nil {
 		log.Fatalf("Render error: %v", err)
 	}

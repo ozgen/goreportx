@@ -79,7 +79,7 @@ func main() {
 	)
 
 	// Render output
-	_, err = pdfRenderer.Render("output-multichart.pdf")
+	_, err = pdfRenderer.Render("examples/outputs/output-multichart.pdf")
 	if err != nil {
 		log.Fatalf("Render error: %v", err)
 	}

@@ -51,7 +51,7 @@ func main() {
 		"",
 	).WithTimestamp(true)
 
-	_, err = renderer.Render("output-simple.pdf")
+	_, err = renderer.Render("examples/outputs/output-simple.pdf")
 	if err != nil {
 		log.Fatalf("PDF render error: %v", err)
 	}

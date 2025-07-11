@@ -63,7 +63,7 @@ func main() {
 
 	// Render PDF
 	pdfRenderer := pdf.NewPDFRenderer(report, tmpl, common.DefaultFontSizes, true, "", footerHeaderBase64, footerHeaderBase64)
-	_, err = pdfRenderer.Render("output-basic.pdf")
+	_, err = pdfRenderer.Render("examples/outputs/output-basic.pdf")
 	if err != nil {
 		log.Fatalf("Failed to render PDF: %v", err)
 	}
@@ -71,7 +71,7 @@ func main() {
 
 	// Render JSON
 	jsonRenderer := json.NewJSONRenderer(report)
-	_, err = jsonRenderer.Render("output-basic.json")
+	_, err = jsonRenderer.Render("examples/outputs/output-basic.json")
 	if err != nil {
 		log.Fatalf("Failed to render JSON: %v", err)
 	}
