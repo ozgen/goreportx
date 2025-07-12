@@ -121,8 +121,6 @@ renderer.WithTimestamp(true).SetTimestampFormat("2006-01-02")
   multiple_column_report/ → Dynamic columns
 ```
 
-Certainly! Here's a clean, emoji-free version of the **Documentation** section to add to your `README.md`:
-
 ---
 
 ## Documentation
