@@ -1,40 +1,39 @@
 package main
 
 import (
+	"github.com/ozgen/goreportx/examples/common"
+	"github.com/ozgen/goreportx/internal/core"
 	"github.com/ozgen/goreportx/internal/models"
-	"github.com/ozgen/goreportx/internal/renderer"
 	"github.com/ozgen/goreportx/internal/renderer/json"
 	"github.com/ozgen/goreportx/internal/renderer/pdf"
 	"html/template"
 	"log"
 	"path/filepath"
-
-	"github.com/ozgen/goreportx/examples/common"
 )
 
 func main() {
-	// Load logo and wrap
-	logoBase64 := renderer.LoadImageBase64("assets/logo.png")
-	logoHTML := renderer.WrapLogoAsHTML(logoBase64, renderer.AlignCenter)
-	footerHeaderBase64 := renderer.LoadImageBase64("assets/header_footer.png")
+	// Load images
+	logoBase64 := core.LoadImageBase64("assets/logo.png")
+	headerFooterBase64 := core.LoadImageBase64("assets/header_footer.png")
+	logoHTML := core.WrapLogoAsHTML(logoBase64, core.AlignCenter)
 
-	// Create charts
+	// Define charts
 	charts := []models.Chart{
 		{
 			Title:       "Usage Overview",
 			Description: "Chart showing daily user activity.",
-			Tag:         renderer.WrapChartAsHTML(common.GenerateChartBase64(), renderer.AlignCenter),
+			Tag:         core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignCenter),
 			Order:       0,
 		},
 		{
 			Title:       "Error Trends",
 			Description: "Error spikes across regions.",
-			Tag:         renderer.WrapChartAsHTML(common.GenerateChartBase64(), renderer.AlignRight),
+			Tag:         core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignRight),
 			Order:       1,
 		},
 	}
 
-	// Create report model
+	// Define report model
 	report := models.Report{
 		Header: models.Header{
 			Title:       "Basic Report Example",
@@ -61,16 +60,25 @@ func main() {
 		log.Fatalf("Failed to parse template: %v", err)
 	}
 
-	// Render PDF
-	pdfRenderer := pdf.NewPDFRenderer(report, tmpl, common.DefaultFontSizes, true, "", footerHeaderBase64, footerHeaderBase64)
+	// Create renderer factory
+	factory := core.NewRendererFactory().
+		WithFontSizes(common.DefaultFontSizes).
+		WithFooterImage(headerFooterBase64).
+		WithHeaderImage(headerFooterBase64).
+		WithPageNumbers(true)
+
+	// Create and use PDF renderer
+	pdfRenderer := pdf.NewPDFRenderer(report, tmpl, factory)
+
 	_, err = pdfRenderer.Render("examples/outputs/output-basic.pdf")
 	if err != nil {
 		log.Fatalf("Failed to render PDF: %v", err)
 	}
 	log.Println("PDF saved to output-basic.pdf")
 
-	// Render JSON
+	// Create and use JSON renderer
 	jsonRenderer := json.NewJSONRenderer(report)
+
 	_, err = jsonRenderer.Render("examples/outputs/output-basic.json")
 	if err != nil {
 		log.Fatalf("Failed to render JSON: %v", err)

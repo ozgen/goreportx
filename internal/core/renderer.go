@@ -1,10 +1,27 @@
-// File: renderer/init.go
-package renderer
+// File: renderer/renderer.go
+package core
 
 import (
 	"fmt"
 	"github.com/signintech/gopdf"
 )
+
+// Renderer is the main structure used to manage the layout and rendering of content into a PDF.
+// It encapsulates the gopdf instance, font settings, current layout position, and additional options
+// such as header/footer images and timestamp rendering.
+type Renderer struct {
+	pdf               *gopdf.GoPdf // Internal PDF instance from gopdf.
+	y                 float64      // Current vertical position on the page.
+	pageWidth         float64      // Width of the current page (default A4).
+	footerText        string       // Footer text to be rendered on each page.
+	pageNumber        int          // Current page number.
+	showPageNumber    bool         // Whether to render the page number in the footer.
+	backgroundImg     string       // Base64-encoded background image path.
+	headerImg         string       // Base64-encoded header image path.
+	footerImg         string       // Base64-encoded footer image path.
+	FontSize          FontSizes    // Font size configuration for the document.
+	TopRightTimestamp string       // Optional timestamp text to be shown at the top-right of each page.
+}
 
 // NewRenderer initializes a new PDF renderer with the specified font sizes and
 // page number visibility. It loads standard Arial fonts and sets the default

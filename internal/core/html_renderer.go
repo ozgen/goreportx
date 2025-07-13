@@ -1,5 +1,5 @@
-// File: renderer/render_html.go
-package renderer
+// File: renderer/html_renderer.go
+package core
 
 import (
 	"bytes"

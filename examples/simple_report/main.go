@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/ozgen/goreportx/examples/common"
+	"github.com/ozgen/goreportx/internal/core"
 	"github.com/ozgen/goreportx/internal/models"
-	"github.com/ozgen/goreportx/internal/renderer"
 	"github.com/ozgen/goreportx/internal/renderer/pdf"
 	"html/template"
 	"log"
@@ -12,18 +12,19 @@ import (
 
 func main() {
 	// Load logo
-	logoBase64 := renderer.LoadImageBase64("assets/logo.png")
+	logoBase64 := core.LoadImageBase64("assets/logo.png")
+	logoHTML := core.WrapLogoAsHTML(logoBase64, core.AlignCenter)
 
-	// Construct simple report
+	// Construct report model
 	report := models.SimpleReport{
 		Header: models.SimpleHeader{
 			Title:       "Sales Report",
 			Subtitle:    "April - June 2025",
 			Explanation: "Overview of sales performance for Q2.",
-			Logo:        renderer.WrapLogoAsHTML(logoBase64, renderer.AlignCenter),
+			Logo:        logoHTML,
 		},
 		Chart: models.SimpleChart{
-			Image:       renderer.WrapChartAsHTML(common.GenerateChartBase64(), renderer.AlignLeft),
+			Image:       core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignLeft),
 			Align:       "left",
 			Title:       "Quarterly Sales",
 			Description: "Sales distribution across regions",
@@ -33,28 +34,28 @@ func main() {
 		},
 	}
 
-	// Load template
+	// Load HTML template
 	tmplPath := filepath.Join("internal", "template", "defaults", "simple_template.html")
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
-		log.Fatalf("Template error: %v", err)
+		log.Fatalf("Failed to parse template: %v", err)
 	}
 
-	// Render as PDF
-	renderer := pdf.NewPDFRenderer(
-		report,
-		tmpl,
-		common.DefaultFontSizes,
-		false, // no background/header/footer images
-		"",
-		"",
-		"",
-	).WithTimestamp(true)
+	// Build renderer factory
+
+	factory := core.NewRendererFactory().
+		WithFontSizes(common.DefaultFontSizes).
+		WithPageNumbers(false)
+
+	// Create PDF renderer with factory and timestamp
+	renderer := pdf.NewPDFRenderer(report, tmpl, factory).
+		WithTimestamp(true).
+		SetTimestampFormat("2006-01-02 15:04")
 
 	_, err = renderer.Render("examples/outputs/output-simple.pdf")
 	if err != nil {
-		log.Fatalf("PDF render error: %v", err)
+		log.Fatalf("Failed to render PDF: %v", err)
 	}
 
-	log.Println("Simple PDF report generated: output-simple.pdf")
+	log.Println("Simple PDF report generated: examples/outputs/output-simple.pdf")
 }
