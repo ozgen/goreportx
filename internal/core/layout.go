@@ -1,5 +1,5 @@
 // File: renderer/layout.go
-package renderer
+package core
 
 import (
 	"fmt"
@@ -238,7 +238,7 @@ func (r *Renderer) walkTableRows(n *html.Node) {
 func (r *Renderer) renderTableRow(tr *html.Node) {
 	x := 50.0
 	lineHeight := 14.0
-	numCols := countColumns(tr)
+	numCols := r.countColumns(tr)
 	if numCols == 0 {
 		return
 	}
@@ -282,7 +282,7 @@ func (r *Renderer) renderTableRow(tr *html.Node) {
 }
 
 // countColumns counts how many <td> or <th> elements are in a given <tr>.
-func countColumns(tr *html.Node) int {
+func (r *Renderer) countColumns(tr *html.Node) int {
 	count := 0
 	for td := tr.FirstChild; td != nil; td = td.NextSibling {
 		if td.Type == html.ElementNode && (td.Data == "td" || td.Data == "th") {

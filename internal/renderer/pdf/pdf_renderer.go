@@ -1,68 +1,48 @@
-// File: renderer/pdf/pdf_renderer.go
+// File: internal/renderer/pdf/pdf_renderer.go
 package pdf
 
 import (
 	"bytes"
+	"github.com/ozgen/goreportx/internal/core"
 	"github.com/ozgen/goreportx/internal/interfaces"
-	"github.com/ozgen/goreportx/internal/renderer"
 	"html/template"
-	"log"
 	"os"
 	"time"
 )
 
-// PDFRenderer renders a given report using an HTML template into a PDF file.
-// It supports optional image-based headers, footers, background, and timestamp injection.
+// PDFRenderer renders a report using an HTML template into a PDF.
+// It uses RendererFactory to configure the internal PDF engine.
 type PDFRenderer struct {
-	Report            interface{}        // The report data passed to the template
-	Template          *template.Template // The parsed HTML template for the PDF layout
-	FontSizes         renderer.FontSizes // Font sizes to use in the PDF rendering
-	UseImages         bool               // If true, use header/footer/base images
-	HeaderImgBase64   string             // Base64-encoded header image
-	FooterImgBase64   string             // Base64-encoded footer image
-	BaseImgBase64     string             // Base64-encoded background image
-	includeTimestamp  bool               // Whether to include a timestamp
-	timestampFormat   string             // Optional timestamp format (default: RFC3339)
-	TopRightTimestamp string             // Rendered timestamp value (internal use)
+	Report            interface{}
+	Template          *template.Template
+	Factory           *core.RendererFactory
+	includeTimestamp  bool
+	timestampFormat   string
+	TopRightTimestamp string
 }
 
-// NewPDFRenderer creates a new PDFRenderer.
-// The report is any data structure compatible with the given HTML template.
-// The images (if used) must be base64-encoded and follow the data URI format.
+// NewPDFRenderer constructs a PDFRenderer using a given RendererFactory.
+// This removes tight coupling with image setup and font handling.
 func NewPDFRenderer(
 	report interface{},
 	tmpl *template.Template,
-	fontSizes renderer.FontSizes,
-	useImages bool,
-	baseImgBase64, headerImgBase64, footerImgBase64 string,
+	factory *core.RendererFactory,
 ) interfaces.RendererInterface {
 	return &PDFRenderer{
-		Report:          report,
-		Template:        tmpl,
-		FontSizes:       fontSizes,
-		UseImages:       useImages,
-		HeaderImgBase64: headerImgBase64,
-		FooterImgBase64: footerImgBase64,
-		BaseImgBase64:   baseImgBase64,
+		Report:   report,
+		Template: tmpl,
+		Factory:  factory,
 	}
 }
 
-// Render generates the PDF output.
-// If `filename` is not empty, the output will also be saved to the given file path.
-// Returns the generated PDF bytes (in-memory) regardless of file saving.
+// Render generates the PDF and optionally writes to disk.
 func (p *PDFRenderer) Render(filename string) ([]byte, error) {
 	var buf bytes.Buffer
 	if err := p.Template.Execute(&buf, p.Report); err != nil {
 		return nil, err
 	}
 
-	var r *renderer.Renderer
-	var err error
-	if p.UseImages {
-		r, err = renderer.NewRendererWithBase64Images(p.BaseImgBase64, p.HeaderImgBase64, p.FooterImgBase64, p.FontSizes, true)
-	} else {
-		r, err = renderer.NewRenderer(p.FontSizes, true)
-	}
+	renderer, err := p.Factory.Build()
 	if err != nil {
 		return nil, err
 	}
@@ -72,31 +52,30 @@ func (p *PDFRenderer) Render(filename string) ([]byte, error) {
 		if format == "" {
 			format = "2006-01-02 15:04:05"
 		}
-		r.TopRightTimestamp = time.Now().Format(format)
-		log.Println("time:", r.TopRightTimestamp)
+		renderer.TopRightTimestamp = time.Now().Format(format)
 	}
 
-	buffer, err := r.RenderHTMLLikeToBuffer(buf.String())
+	pdfBuffer, err := renderer.RenderHTMLLikeToBuffer(buf.String())
 	if err != nil {
 		return nil, err
 	}
 
 	if filename != "" {
-		if err := os.WriteFile(filename, buffer.Bytes(), 0644); err != nil {
+		if err := os.WriteFile(filename, pdfBuffer.Bytes(), 0644); err != nil {
 			return nil, err
 		}
 	}
-	return buffer.Bytes(), nil
+
+	return pdfBuffer.Bytes(), nil
 }
 
-// WithTimestamp enables or disables adding a timestamp in the top-right corner of the PDF pages.
-func (p *PDFRenderer) WithTimestamp(enabled bool) interfaces.RendererInterface {
-	p.includeTimestamp = enabled
+// WithTimestamp enables/disables timestamp display in top-right.
+func (p *PDFRenderer) WithTimestamp(enable bool) interfaces.RendererInterface {
+	p.includeTimestamp = enable
 	return p
 }
 
-// SetTimestampFormat allows customization of the timestamp format.
-// Uses Go's time formatting layout syntax (e.g., "2006-01-02 15:04").
+// SetTimestampFormat specifies custom layout format for timestamp.
 func (p *PDFRenderer) SetTimestampFormat(format string) interfaces.RendererInterface {
 	p.timestampFormat = format
 	return p

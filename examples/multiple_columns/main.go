@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/ozgen/goreportx/examples/common"
+	"github.com/ozgen/goreportx/internal/core"
 	"github.com/ozgen/goreportx/internal/models"
-	"github.com/ozgen/goreportx/internal/renderer"
 	"github.com/ozgen/goreportx/internal/renderer/pdf"
 	"html/template"
 	"log"
@@ -21,7 +21,7 @@ func main() {
 		},
 	}
 
-	// Fill in meta fields
+	// Add meta fields
 	multiReport.Header.Title = "Student Term Results"
 	multiReport.Header.Subtitle = "2025 Academic Year - Term 1"
 	multiReport.Header.Explanation = "This report summarizes the academic performance of students across various subjects."
@@ -29,31 +29,32 @@ func main() {
 
 	multiReport.Chart.Title = "Score Distribution"
 	multiReport.Chart.Description = "This chart visualizes the score distribution across the class."
-	multiReport.Chart.Image = renderer.WrapChartAsHTML(common.GenerateChartBase64(), renderer.AlignCenter)
+	multiReport.Chart.Image = core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignCenter)
 
-	// Load template
+	// Load HTML template
 	tmplPath := filepath.Join("internal", "template", "defaults", "multiple_column_template.html")
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
-		log.Fatalf("Template error: %v", err)
+		log.Fatalf("Failed to parse template: %v", err)
 	}
 
-	// Create renderer
+	// Build renderer factory
+	factory := core.NewRendererFactory().
+		WithFontSizes(common.DefaultFontSizes).
+		WithPageNumbers(true)
+
+	// Create PDF renderer using factory
 	pdfRenderer := pdf.NewPDFRenderer(
 		multiReport,
 		tmpl,
-		common.DefaultFontSizes,
-		false, // No background/header/footer images
-		"",
-		"",
-		"",
+		factory,
 	)
 
-	// Render PDF
+	// Render and save
 	_, err = pdfRenderer.Render("examples/outputs/output-multi.pdf")
 	if err != nil {
-		log.Fatalf("Render error: %v", err)
+		log.Fatalf("Failed to render PDF: %v", err)
 	}
 
-	log.Println("Multi-column report generated: output-multi.pdf")
+	log.Println("Multi-column report generated: examples/outputs/output-multi.pdf")
 }

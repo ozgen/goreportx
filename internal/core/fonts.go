@@ -1,5 +1,5 @@
 // File: renderer/fonts.go
-package renderer
+package core
 
 import (
 	"fmt"
@@ -9,13 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 )
-
-// FontPaths represents the file paths for the regular, bold, and italic font variants.
-type FontPaths struct {
-	Regular string
-	Bold    string
-	Italic  string
-}
 
 // findFontPaths returns the full paths to font files located in the assets directory.
 //

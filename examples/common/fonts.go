@@ -1,9 +1,11 @@
 package common
 
-import "github.com/ozgen/goreportx/internal/renderer"
+import (
+	"github.com/ozgen/goreportx/internal/core"
+)
 
 // DefaultFontSizes provides standard font sizes for typical reports.
-var DefaultFontSizes = renderer.FontSizes{
+var DefaultFontSizes = core.FontSizes{
 	H1:     24,
 	H2:     20,
 	H3:     16,
@@ -12,7 +14,7 @@ var DefaultFontSizes = renderer.FontSizes{
 }
 
 // LargeFontSizes provides larger font sizes for more visual emphasis.
-var LargeFontSizes = renderer.FontSizes{
+var LargeFontSizes = core.FontSizes{
 	H1:     30,
 	H2:     24,
 	H3:     18,
