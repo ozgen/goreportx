@@ -204,7 +204,7 @@ go run cmd/goreportx/main.go \
 * [x] Multi-chart & multi-column support
 * [x] Timestamp injection
 * [x] CLI interface
-* [ ] Unit tests
+* [x] Unit tests
 * [ ] Makefile & CI/CD
 * [ ] Wiki for all built-in layouts
 
