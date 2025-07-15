@@ -188,6 +188,21 @@ go run cmd/goreportx/main.go \
 ```
 
 ---
+###  How to Use Makefile
+
+From the terminal in the root directory:
+
+```bash
+make            # build binary
+make test       # run unit tests
+make cover      # run tests + show HTML coverage
+make run        # run CLI with sample args
+make install    # install locally
+make clean      # cleanup
+make fmt        # format source files
+```
+
+---
 
 ## Documentation
 
