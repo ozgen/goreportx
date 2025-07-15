@@ -35,7 +35,10 @@ func GetTextContent(n *html.Node) string {
 // walkText recursively walks the HTML tree and collects text from TextNode elements.
 func walkText(n *html.Node, buf io.Writer) {
 	if n.Type == html.TextNode {
-		buf.Write([]byte(strings.TrimSpace(n.Data)))
+		_, err := buf.Write([]byte(strings.TrimSpace(n.Data)))
+		if err != nil {
+			return
+		}
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		walkText(c, buf)

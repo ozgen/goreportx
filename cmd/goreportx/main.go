@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
+	"fmt"
 	"html/template"
 	"log"
 	"os"
@@ -13,29 +15,28 @@ import (
 	"github.com/ozgen/goreportx/internal/renderer/pdf"
 )
 
-func main() {
-	// Required
-	inputPath := flag.String("input", "", "Path to JSON input file (required)")
-	templatePath := flag.String("template", "", "Path to HTML template file (required)")
-	format := flag.String("format", "", "Output format: pdf or json (required)")
+func Run(args []string) error {
+	fs := flag.NewFlagSet("goreportx", flag.ContinueOnError)
 
-	// Optional
-	outputPath := flag.String("output", "", "Output file path")
-	headerImg := flag.String("headerImage", "", "Header image path (optional)")
-	footerImg := flag.String("footerImage", "", "Footer image path (optional)")
-	baseImg := flag.String("baseImage", "", "Background image path (optional)")
-	showPageNumber := flag.Bool("showPageNumber", true, "Show page numbers (PDF only)")
-	withTimestamp := flag.Bool("with-timestamp", false, "Include timestamp")
-	timeFormat := flag.String("time-format", "2006-01-02 15:04:05", "Timestamp format")
+	inputPath := fs.String("input", "", "Path to JSON input file (required)")
+	templatePath := fs.String("template", "", "Path to HTML template file (required)")
+	format := fs.String("format", "", "Output format: pdf or json (required)")
+	outputPath := fs.String("output", "", "Output file path")
+	headerImg := fs.String("headerImage", "", "Header image path (optional)")
+	footerImg := fs.String("footerImage", "", "Footer image path (optional)")
+	baseImg := fs.String("baseImage", "", "Background image path (optional)")
+	showPageNumber := fs.Bool("showPageNumber", true, "Show page numbers (PDF only)")
+	withTimestamp := fs.Bool("with-timestamp", false, "Include timestamp")
+	timeFormat := fs.String("time-format", "2006-01-02 15:04:05", "Timestamp format")
 
-	flag.Parse()
-
-	// Validate required flags
-	if *inputPath == "" || *templatePath == "" || *format == "" {
-		log.Fatal("Missing required flag(s): --input, --template, and --format are mandatory")
+	if err := fs.Parse(args); err != nil {
+		return err
 	}
 
-	// Default output
+	if *inputPath == "" || *templatePath == "" || *format == "" {
+		return errors.New("missing required flag(s): --input, --template, and --format are mandatory")
+	}
+
 	if *outputPath == "" {
 		if *format == "pdf" {
 			*outputPath = "output.pdf"
@@ -44,28 +45,23 @@ func main() {
 		}
 	}
 
-	// Load report JSON
 	jsonBytes, err := os.ReadFile(*inputPath)
 	if err != nil {
-		log.Fatalf("Failed to read input JSON: %v", err)
+		return fmt.Errorf("failed to read input JSON: %w", err)
 	}
 	var report map[string]interface{}
 	if err := json.Unmarshal(jsonBytes, &report); err != nil {
-		log.Fatalf("Failed to parse input JSON: %v", err)
+		return fmt.Errorf("failed to parse input JSON: %w", err)
 	}
 
-	// Load template
 	tmpl, err := template.ParseFiles(*templatePath)
 	if err != nil {
-		log.Fatalf("Failed to parse template: %v", err)
+		return fmt.Errorf("failed to parse template: %w", err)
 	}
 
-	// Choose format
 	switch strings.ToLower(*format) {
 	case "pdf":
 		factory := core.NewRendererFactory().WithPageNumbers(*showPageNumber)
-
-		// Optional images
 		if *headerImg != "" {
 			factory.WithHeaderImage(core.LoadImageBase64(*headerImg))
 		}
@@ -76,29 +72,33 @@ func main() {
 			factory.WithBaseImage(core.LoadImageBase64(*baseImg))
 		}
 
-		// Create PDF renderer
-		pdfRenderer := pdf.NewPDFRenderer(report, tmpl, factory).
+		_, err := pdf.NewPDFRenderer(report, tmpl, factory).
 			WithTimestamp(*withTimestamp).
-			SetTimestampFormat(*timeFormat)
-
-		_, err := pdfRenderer.Render(*outputPath)
+			SetTimestampFormat(*timeFormat).
+			Render(*outputPath)
 		if err != nil {
-			log.Fatalf("Failed to render PDF: %v", err)
+			return fmt.Errorf("failed to render PDF: %w", err)
 		}
-		log.Println("PDF generated at:", *outputPath)
 
 	case "json":
-		jsonRenderer := jsonReort.NewJSONRenderer(report).
+		_, err := jsonReort.NewJSONRenderer(report).
 			WithTimestamp(*withTimestamp).
-			SetTimestampFormat(*timeFormat)
-
-		_, err := jsonRenderer.Render(*outputPath)
+			SetTimestampFormat(*timeFormat).
+			Render(*outputPath)
 		if err != nil {
-			log.Fatalf("Failed to render JSON: %v", err)
+			return fmt.Errorf("failed to render JSON: %w", err)
 		}
-		log.Println("JSON saved at:", *outputPath)
 
 	default:
-		log.Fatalf("Invalid format: %s. Use 'pdf' or 'json'.", *format)
+		return fmt.Errorf("invalid format: %s. Use 'pdf' or 'json'", *format)
+	}
+
+	return nil
+}
+
+// main() just calls Run with os.Args[1:]
+func main() {
+	if err := Run(os.Args[1:]); err != nil {
+		log.Fatal(err)
 	}
 }

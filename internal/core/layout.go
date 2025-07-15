@@ -23,7 +23,10 @@ func (r *Renderer) walk(n *html.Node) {
 			textW, _ := r.pdf.MeasureTextWidth(text)
 			r.pdf.SetX((595.28 - textW) / 2)
 			r.pdf.SetY(r.y)
-			r.pdf.Cell(nil, text)
+			err := r.pdf.Cell(nil, text)
+			if err != nil {
+				return
+			}
 			r.y += 30
 
 		case "h2":
@@ -32,7 +35,10 @@ func (r *Renderer) walk(n *html.Node) {
 			_ = r.pdf.SetFont("Arial", "", r.FontSize.H2)
 			r.pdf.SetX(50)
 			r.pdf.SetY(r.y)
-			r.pdf.Cell(nil, text)
+			err := r.pdf.Cell(nil, text)
+			if err != nil {
+				return
+			}
 			r.y += 25
 
 		case "h3":
@@ -41,7 +47,10 @@ func (r *Renderer) walk(n *html.Node) {
 			_ = r.pdf.SetFont("Arial", "", r.FontSize.H3)
 			r.pdf.SetX(50)
 			r.pdf.SetY(r.y)
-			r.pdf.Cell(nil, text)
+			err := r.pdf.Cell(nil, text)
+			if err != nil {
+				return
+			}
 			r.y += 20
 
 		case "p":
@@ -79,7 +88,10 @@ func (r *Renderer) renderParagraph(n *html.Node) {
 			r.pdf.SetX(50)
 			r.pdf.SetY(r.y)
 			SetFont(r.pdf, currentItalic, currentBold)
-			r.pdf.Cell(nil, currentLine)
+			err := r.pdf.Cell(nil, currentLine)
+			if err != nil {
+				return
+			}
 			r.y += lineHeight
 		}
 	}
@@ -194,13 +206,19 @@ func (r *Renderer) drawFooterAtFixedPosition() {
 		_ = r.pdf.SetFont("Arial", "", r.FontSize.Footer)
 		r.pdf.SetY(820)
 		r.pdf.SetX(50)
-		r.pdf.Cell(nil, r.footerText)
+		err := r.pdf.Cell(nil, r.footerText)
+		if err != nil {
+			return
+		}
 	}
 	if r.showPageNumber {
 		_ = r.pdf.SetFont("Arial", "", r.FontSize.Footer)
 		r.pdf.SetY(820)
 		r.pdf.SetX(500)
-		r.pdf.Cell(nil, fmt.Sprintf("Page %d", r.pageNumber))
+		err := r.pdf.Cell(nil, fmt.Sprintf("Page %d", r.pageNumber))
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -236,7 +254,6 @@ func (r *Renderer) walkTableRows(n *html.Node) {
 
 // renderTableRow renders a single table row with dynamic height and column width.
 func (r *Renderer) renderTableRow(tr *html.Node) {
-	x := 50.0
 	lineHeight := 14.0
 	numCols := r.countColumns(tr)
 	if numCols == 0 {
@@ -266,7 +283,7 @@ func (r *Renderer) renderTableRow(tr *html.Node) {
 		_ = r.pdf.SetFont("Arial", "", r.FontSize.P)
 	}
 
-	x = 50.0
+	x := 50.0
 	startY := r.y
 	for _, text := range cellTexts {
 		r.pdf.RectFromUpperLeftWithStyle(x, startY, colWidth, rowHeight, "D")
@@ -274,7 +291,10 @@ func (r *Renderer) renderTableRow(tr *html.Node) {
 		for j, line := range lines {
 			r.pdf.SetX(x + 4)
 			r.pdf.SetY(startY + float64(j)*lineHeight + 2)
-			r.pdf.Cell(nil, line)
+			err := r.pdf.Cell(nil, line)
+			if err != nil {
+				return
+			}
 		}
 		x += colWidth
 	}
@@ -300,5 +320,8 @@ func (r *Renderer) drawTimestamp() {
 	_ = r.pdf.SetFont("Arial", "", r.FontSize.Footer)
 	r.pdf.SetX(490)
 	r.pdf.SetY(30)
-	r.pdf.Cell(nil, r.TopRightTimestamp)
+	err := r.pdf.Cell(nil, r.TopRightTimestamp)
+	if err != nil {
+		return
+	}
 }
