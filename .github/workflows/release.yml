@@ -1,5 +1,10 @@
 name: Release goreportx
 
+permissions:
+  pull-requests: write
+  contents: write
+  issues: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -55,15 +60,15 @@ jobs:
 
       - name: Create tag and push
         env:
-          GITHUB_TOKEN: ${{ secrets.OZGEN_BOT_TOKEN }}
+          OZGEN_BOT_TOKEN: ${{ secrets.OZGEN_BOT_TOKEN }}
         run: |
           git config user.name "ozgen"
           git config user.email "ozgen@users.noreply.github.com"
-
+          
           git tag ${{ steps.bump.outputs.new_version }}
-
-          git remote set-url origin https://ozgen:${GITHUB_TOKEN}@github.com/ozgen/goreportx.git
-          git push origin ${{ steps.bump.outputs.new_version }}
+          
+          git remote set-url origin https://ozgen:${OZGEN_BOT_TOKEN}@github.com/ozgen/goreportx.git
+          git push origin ${{ steps.bump.outputs.new_version }} 
 
       - name: Build binary
         run: make build
