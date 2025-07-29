@@ -21,7 +21,7 @@ jobs:
           go-version: '1.24'
 
       - name: Install semver tool
-        run: go install github.com/itchyny/go-semver/cmd/semver@latest
+        run: go install github.com/itchyny/go-semver@latest
 
       - name: Get latest tag
         id: get_tag
