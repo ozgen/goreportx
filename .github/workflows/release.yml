@@ -54,10 +54,15 @@ jobs:
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
       - name: Create tag and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.OZGEN_BOT_TOKEN }}
         run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git config user.name "ozgen"
+          git config user.email "ozgen@users.noreply.github.com"
+
           git tag ${{ steps.bump.outputs.new_version }}
+
+          git remote set-url origin https://ozgen:${GITHUB_TOKEN}@github.com/ozgen/goreportx.git
           git push origin ${{ steps.bump.outputs.new_version }}
 
       - name: Build binary
