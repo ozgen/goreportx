@@ -20,12 +20,6 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Download semver CLI
-        run: |
-          curl -sSL https://github.com/itchyny/go-semver/releases/latest/download/semver_linux_amd64.tar.gz | tar -xz
-          chmod +x semver
-          sudo mv semver /usr/local/bin/
-
       - name: Get latest tag
         id: get_tag
         run: |
@@ -39,7 +33,23 @@ jobs:
         run: |
           OLD_VERSION=${{ steps.get_tag.outputs.tag }}
           if [ -z "$OLD_VERSION" ]; then OLD_VERSION="v0.0.0"; fi
-          NEW_VERSION=$(semver bump ${{ github.event.inputs.version_type }} $OLD_VERSION)
+
+          bump_version() {
+            local version="${1#v}"
+            local part=$2
+            IFS='.' read -r major minor patch <<< "$version"
+
+            case "$part" in
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              patch) patch=$((patch + 1)) ;;
+              *) echo "Invalid version type: $part"; exit 1 ;;
+            esac
+
+            echo "v$major.$minor.$patch"
+          }
+
+          NEW_VERSION=$(bump_version "$OLD_VERSION" "${{ github.event.inputs.version_type }}")
           echo "New version: $NEW_VERSION"
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
