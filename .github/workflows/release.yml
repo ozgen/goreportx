@@ -20,8 +20,11 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Install semver tool
-        run: go install github.com/itchyny/go-semver@latest
+      - name: Download semver CLI
+        run: |
+          curl -sSL https://github.com/itchyny/go-semver/releases/latest/download/semver_linux_amd64.tar.gz | tar -xz
+          chmod +x semver
+          sudo mv semver /usr/local/bin/
 
       - name: Get latest tag
         id: get_tag
