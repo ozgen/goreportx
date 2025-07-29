@@ -1,5 +1,11 @@
 # goreportx
 
+[![CI](https://github.com/ozgen/goreportx/actions/workflows/ci.yml/badge.svg)](https://github.com/ozgen/goreportx/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/tag/ozgen/goreportx?label=release&sort=semver)](https://github.com/ozgen/goreportx/releases)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ozgen/goreportx)](https://goreportcard.com/report/github.com/ozgen/goreportx)
+[![codecov](https://codecov.io/gh/ozgen/goreportx/branch/main/graph/badge.svg)](https://codecov.io/gh/ozgen/goreportx)
+
+
 **goreportx** is a lightweight Go library to generate PDF and JSON reports from structured data using HTML-like templates.
 It supports multiple layouts, base64-embedded charts and logos, dynamic multi-column tables, and optional timestamp injection.
 
@@ -209,19 +215,6 @@ make fmt        # format source files
 * [Project Wiki](https://github.com/ozgen/goreportx/wiki) — Guide to usage, templates, and examples
 * [Templating](https://github.com/ozgen/goreportx/wiki/Templating-in-goreportx)
 * [Data Models](https://github.com/ozgen/goreportx/wiki/Data-Models)
-
----
-
-## TODO
-
-* [x] PDF & JSON renderers
-* [x] HTML-like templating engine
-* [x] Multi-chart & multi-column support
-* [x] Timestamp injection
-* [x] CLI interface
-* [x] Unit tests
-* [ ] Makefile & CI/CD
-* [ ] Wiki for all built-in layouts
 
 ---
 

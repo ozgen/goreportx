@@ -1,0 +1,57 @@
+name: Release goreportx
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type (major, minor, patch)'
+        required: true
+        default: 'patch'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install semver tool
+        run: go install github.com/itchyny/go-semver/cmd/semver@latest
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags
+          TAG=$(git tag --sort=-creatordate | head -n 1)
+          echo "Latest tag: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        id: bump
+        run: |
+          OLD_VERSION=${{ steps.get_tag.outputs.tag }}
+          if [ -z "$OLD_VERSION" ]; then OLD_VERSION="v0.0.0"; fi
+          NEW_VERSION=$(semver bump ${{ github.event.inputs.version_type }} $OLD_VERSION)
+          echo "New version: $NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create tag and push
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git tag ${{ steps.bump.outputs.new_version }}
+          git push origin ${{ steps.bump.outputs.new_version }}
+
+      - name: Build binary
+        run: make build
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.bump.outputs.new_version }}
+          files: bin/goreportx
