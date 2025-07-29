@@ -32,7 +32,7 @@ test:
 .PHONY: cover
 cover:
 	@echo "Running tests with coverage..."
-	$(GOTEST) -coverprofile=coverage.out $(PKG)
+	$(GOTEST) -coverprofile=coverage.out $(shell go list ./... | grep -vE "/examples|/internal/template")
 	@go tool cover -html=coverage.out
 
 # Lint the codebase
