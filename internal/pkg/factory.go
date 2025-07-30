@@ -1,5 +1,5 @@
-// File: internal/core/factory.go
-package core
+// File: internal/pkg/factory.go
+package pkg
 
 // RendererFactory encapsulates all the configuration options needed
 // to construct a reusable PDF Renderer instance. It serves as a flexible

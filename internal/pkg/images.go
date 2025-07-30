@@ -1,5 +1,5 @@
 // File: renderer/image.go
-package core
+package pkg
 
 import (
 	"encoding/base64"
