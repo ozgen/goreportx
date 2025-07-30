@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/ozgen/goreportx/examples/common"
-	"github.com/ozgen/goreportx/internal/core"
 	"github.com/ozgen/goreportx/internal/models"
+	"github.com/ozgen/goreportx/internal/pkg"
 	"github.com/ozgen/goreportx/internal/renderer/json"
 	"github.com/ozgen/goreportx/internal/renderer/pdf"
 	"html/template"
@@ -13,22 +13,22 @@ import (
 
 func main() {
 	// Load images
-	logoBase64 := core.LoadImageBase64("assets/logo.png")
-	headerFooterBase64 := core.LoadImageBase64("assets/header_footer.png")
-	logoHTML := core.WrapLogoAsHTML(logoBase64, core.AlignCenter)
+	logoBase64 := pkg.LoadImageBase64("assets/logo.png")
+	headerFooterBase64 := pkg.LoadImageBase64("assets/header_footer.png")
+	logoHTML := pkg.WrapLogoAsHTML(logoBase64, pkg.AlignCenter)
 
 	// Define charts
 	charts := []models.Chart{
 		{
 			Title:       "Usage Overview",
 			Description: "Chart showing daily user activity.",
-			Tag:         core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignCenter),
+			Tag:         pkg.WrapChartAsHTML(common.GenerateChartBase64(), pkg.AlignCenter),
 			Order:       0,
 		},
 		{
 			Title:       "Error Trends",
 			Description: "Error spikes across regions.",
-			Tag:         core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignRight),
+			Tag:         pkg.WrapChartAsHTML(common.GenerateChartBase64(), pkg.AlignRight),
 			Order:       1,
 		},
 	}
@@ -61,7 +61,7 @@ func main() {
 	}
 
 	// Create renderer factory
-	factory := core.NewRendererFactory().
+	factory := pkg.NewRendererFactory().
 		WithFontSizes(common.DefaultFontSizes).
 		WithFooterImage(headerFooterBase64).
 		WithHeaderImage(headerFooterBase64).

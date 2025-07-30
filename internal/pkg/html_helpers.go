@@ -1,5 +1,5 @@
 // File: renderer/html_helpers.go
-package core
+package pkg
 
 import (
 	"bytes"

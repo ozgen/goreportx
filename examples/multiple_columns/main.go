@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/ozgen/goreportx/examples/common"
-	"github.com/ozgen/goreportx/internal/core"
 	"github.com/ozgen/goreportx/internal/models"
+	"github.com/ozgen/goreportx/internal/pkg"
 	"github.com/ozgen/goreportx/internal/renderer/pdf"
 	"html/template"
 	"log"
@@ -29,7 +29,7 @@ func main() {
 
 	multiReport.Chart.Title = "Score Distribution"
 	multiReport.Chart.Description = "This chart visualizes the score distribution across the class."
-	multiReport.Chart.Image = core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignCenter)
+	multiReport.Chart.Image = pkg.WrapChartAsHTML(common.GenerateChartBase64(), pkg.AlignCenter)
 
 	// Load HTML template
 	tmplPath := filepath.Join("internal", "template", "defaults", "multiple_column_template.html")
@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// Build renderer factory
-	factory := core.NewRendererFactory().
+	factory := pkg.NewRendererFactory().
 		WithFontSizes(common.DefaultFontSizes).
 		WithPageNumbers(true)
 

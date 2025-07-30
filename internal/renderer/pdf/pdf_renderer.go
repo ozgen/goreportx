@@ -3,8 +3,8 @@ package pdf
 
 import (
 	"bytes"
-	"github.com/ozgen/goreportx/internal/core"
 	"github.com/ozgen/goreportx/internal/interfaces"
+	"github.com/ozgen/goreportx/internal/pkg"
 	"html/template"
 	"os"
 	"time"
@@ -15,7 +15,7 @@ import (
 type PDFRenderer struct {
 	Report            interface{}
 	Template          *template.Template
-	Factory           *core.RendererFactory
+	Factory           *pkg.RendererFactory
 	includeTimestamp  bool
 	timestampFormat   string
 	TopRightTimestamp string
@@ -26,7 +26,7 @@ type PDFRenderer struct {
 func NewPDFRenderer(
 	report interface{},
 	tmpl *template.Template,
-	factory *core.RendererFactory,
+	factory *pkg.RendererFactory,
 ) interfaces.RendererInterface {
 	return &PDFRenderer{
 		Report:   report,

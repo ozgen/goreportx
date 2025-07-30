@@ -1,5 +1,5 @@
 // File: renderer/renderer.go
-package core
+package pkg
 
 import (
 	"fmt"

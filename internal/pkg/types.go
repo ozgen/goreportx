@@ -1,4 +1,4 @@
-package core
+package pkg
 
 const (
 	// pageHeight defines the total height of an A4 PDF page in points.
