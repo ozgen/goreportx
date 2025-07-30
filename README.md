@@ -37,7 +37,7 @@ go get github.com/ozgen/goreportx
 ### Render a basic report using PDF and JSON renderer
 
 ```go
-tmpl := template.Must(template.ParseFiles("internal/template/defaults/smart_template_new.html"))
+tmpl := template.Must(template.ParseFiles("pkg/template/defaults/smart_template_new.html"))
 
 factory := core.NewRendererFactory().
   WithFontSizes(core.FontSizes{H1: 24, H2: 18, H3: 14, P: 12, Footer: 10}).
@@ -171,7 +171,7 @@ You can use `goreportx` from the command line to generate PDF or JSON reports fr
 ```bash
 go run cmd/goreportx/main.go \
   --input examples/outputs/sample.json \
-  --template internal/template/defaults/smart_template_new.html \
+  --template pkg/template/defaults/smart_template_new.html \
   --format pdf \
   --output examples/outputs/generated.pdf \
   --headerImage assets/header_footer.png \
@@ -187,7 +187,7 @@ go run cmd/goreportx/main.go \
 ```bash
 go run cmd/goreportx/main.go \
   --input examples/outputs/sample.json \
-  --template internal/template/defaults/smart_template_new.html \
+  --template pkg/template/defaults/smart_template_new.html \
   --format json \
   --output examples/outputs/generated.json \
   --with-timestamp

@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/ozgen/goreportx/examples/common"
-	"github.com/ozgen/goreportx/internal/models"
-	"github.com/ozgen/goreportx/internal/pkg"
-	"github.com/ozgen/goreportx/internal/renderer/pdf"
+	"github.com/ozgen/goreportx/pkg/core"
+	"github.com/ozgen/goreportx/pkg/models"
+	"github.com/ozgen/goreportx/pkg/renderer/pdf"
 	"html/template"
 	"log"
 	"path/filepath"
@@ -12,8 +12,8 @@ import (
 
 func main() {
 	// Load logo
-	logoBase64 := pkg.LoadImageBase64("assets/logo.png")
-	logoHTML := pkg.WrapLogoAsHTML(logoBase64, pkg.AlignCenter)
+	logoBase64 := core.LoadImageBase64("assets/logo.png")
+	logoHTML := core.WrapLogoAsHTML(logoBase64, core.AlignCenter)
 
 	// Construct report model
 	report := models.SimpleReport{
@@ -24,7 +24,7 @@ func main() {
 			Logo:        logoHTML,
 		},
 		Chart: models.SimpleChart{
-			Image:       pkg.WrapChartAsHTML(common.GenerateChartBase64(), pkg.AlignLeft),
+			Image:       core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignLeft),
 			Align:       "left",
 			Title:       "Quarterly Sales",
 			Description: "Sales distribution across regions",
@@ -35,7 +35,7 @@ func main() {
 	}
 
 	// Load HTML template
-	tmplPath := filepath.Join("internal", "template", "defaults", "simple_template.html")
+	tmplPath := filepath.Join("pkg", "template", "defaults", "simple_template.html")
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
 		log.Fatalf("Failed to parse template: %v", err)
@@ -43,7 +43,7 @@ func main() {
 
 	// Build renderer factory
 
-	factory := pkg.NewRendererFactory().
+	factory := core.NewRendererFactory().
 		WithFontSizes(common.DefaultFontSizes).
 		WithPageNumbers(false)
 

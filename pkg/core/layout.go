@@ -1,5 +1,5 @@
 // File: renderer/layout.go
-package pkg
+package core
 
 import (
 	"fmt"

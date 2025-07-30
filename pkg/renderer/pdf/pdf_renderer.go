@@ -1,21 +1,21 @@
-// File: internal/renderer/pdf/pdf_renderer.go
+// File: pkg/renderer/pdf/pdf_renderer.go
 package pdf
 
 import (
 	"bytes"
-	"github.com/ozgen/goreportx/internal/interfaces"
-	"github.com/ozgen/goreportx/internal/pkg"
+	"github.com/ozgen/goreportx/pkg/core"
+	"github.com/ozgen/goreportx/pkg/interfaces"
 	"html/template"
 	"os"
 	"time"
 )
 
 // PDFRenderer renders a report using an HTML template into a PDF.
-// It uses RendererFactory to configure the internal PDF engine.
+// It uses RendererFactory to configure the pkg PDF engine.
 type PDFRenderer struct {
 	Report            interface{}
 	Template          *template.Template
-	Factory           *pkg.RendererFactory
+	Factory           *core.RendererFactory
 	includeTimestamp  bool
 	timestampFormat   string
 	TopRightTimestamp string
@@ -26,7 +26,7 @@ type PDFRenderer struct {
 func NewPDFRenderer(
 	report interface{},
 	tmpl *template.Template,
-	factory *pkg.RendererFactory,
+	factory *core.RendererFactory,
 ) interfaces.RendererInterface {
 	return &PDFRenderer{
 		Report:   report,

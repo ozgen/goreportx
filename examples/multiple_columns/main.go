@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/ozgen/goreportx/examples/common"
-	"github.com/ozgen/goreportx/internal/models"
-	"github.com/ozgen/goreportx/internal/pkg"
-	"github.com/ozgen/goreportx/internal/renderer/pdf"
+	"github.com/ozgen/goreportx/pkg/core"
+	"github.com/ozgen/goreportx/pkg/models"
+	"github.com/ozgen/goreportx/pkg/renderer/pdf"
 	"html/template"
 	"log"
 	"path/filepath"
@@ -29,17 +29,17 @@ func main() {
 
 	multiReport.Chart.Title = "Score Distribution"
 	multiReport.Chart.Description = "This chart visualizes the score distribution across the class."
-	multiReport.Chart.Image = pkg.WrapChartAsHTML(common.GenerateChartBase64(), pkg.AlignCenter)
+	multiReport.Chart.Image = core.WrapChartAsHTML(common.GenerateChartBase64(), core.AlignCenter)
 
 	// Load HTML template
-	tmplPath := filepath.Join("internal", "template", "defaults", "multiple_column_template.html")
+	tmplPath := filepath.Join("pkg", "template", "defaults", "multiple_column_template.html")
 	tmpl, err := template.ParseFiles(tmplPath)
 	if err != nil {
 		log.Fatalf("Failed to parse template: %v", err)
 	}
 
 	// Build renderer factory
-	factory := pkg.NewRendererFactory().
+	factory := core.NewRendererFactory().
 		WithFontSizes(common.DefaultFontSizes).
 		WithPageNumbers(true)
 
