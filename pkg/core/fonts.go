@@ -1,5 +1,5 @@
 // File: renderer/fonts.go
-package pkg
+package core
 
 import (
 	"fmt"

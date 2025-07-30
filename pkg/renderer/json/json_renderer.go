@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ozgen/goreportx/internal/interfaces"
+	"github.com/ozgen/goreportx/pkg/interfaces"
 )
 
 // JSONRenderer is responsible for rendering any report object into

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ozgen/goreportx/internal/interfaces"
+	"github.com/ozgen/goreportx/pkg/interfaces"
 	"github.com/stretchr/testify/assert"
 )
 

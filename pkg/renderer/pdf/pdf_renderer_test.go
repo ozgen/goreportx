@@ -2,8 +2,8 @@ package pdf
 
 import (
 	"bytes"
-	"github.com/ozgen/goreportx/internal/interfaces"
-	"github.com/ozgen/goreportx/internal/pkg"
+	"github.com/ozgen/goreportx/pkg/core"
+	"github.com/ozgen/goreportx/pkg/interfaces"
 	"github.com/stretchr/testify/assert"
 	"html/template"
 	"os"
@@ -11,7 +11,7 @@ import (
 )
 
 type MockRenderer struct {
-	pkg.Renderer
+	core.Renderer
 	RenderFunc func(content string) (*bytes.Buffer, error)
 }
 
@@ -23,19 +23,19 @@ func (m *MockRenderer) RenderHTMLLikeToBuffer(content string) (*bytes.Buffer, er
 }
 
 type MockFactory struct {
-	pkg.RendererFactory
-	Renderer *pkg.Renderer
+	core.RendererFactory
+	Renderer *core.Renderer
 	Err      error
 }
 
-func (f *MockFactory) Build() (*pkg.Renderer, error) {
+func (f *MockFactory) Build() (*core.Renderer, error) {
 	if f.Err != nil {
 		return nil, f.Err
 	}
 	return f.Renderer, nil
 }
 
-func setupTestRenderer(t *testing.T, tmplStr string, factory *pkg.RendererFactory) *PDFRenderer {
+func setupTestRenderer(t *testing.T, tmplStr string, factory *core.RendererFactory) *PDFRenderer {
 	tmpl := template.Must(template.New("test").Parse(tmplStr))
 	return NewPDFRenderer(
 		map[string]interface{}{"Title": "My Report"},
@@ -110,5 +110,5 @@ func TestPDFRenderer_Render_WriteToFile(t *testing.T) {
 }
 
 func TestPDFRenderer_ImplementsRendererInterface(t *testing.T) {
-	var _ interfaces.RendererInterface = NewPDFRenderer(nil, template.New("x"), &pkg.RendererFactory{})
+	var _ interfaces.RendererInterface = NewPDFRenderer(nil, template.New("x"), &core.RendererFactory{})
 }

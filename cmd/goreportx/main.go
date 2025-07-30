@@ -10,9 +10,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ozgen/goreportx/internal/pkg"
-	jsonReort "github.com/ozgen/goreportx/internal/renderer/json"
-	"github.com/ozgen/goreportx/internal/renderer/pdf"
+	"github.com/ozgen/goreportx/pkg/core"
+	jsonReort "github.com/ozgen/goreportx/pkg/renderer/json"
+	"github.com/ozgen/goreportx/pkg/renderer/pdf"
 )
 
 func Run(args []string) error {
@@ -61,15 +61,15 @@ func Run(args []string) error {
 
 	switch strings.ToLower(*format) {
 	case "pdf":
-		factory := pkg.NewRendererFactory().WithPageNumbers(*showPageNumber)
+		factory := core.NewRendererFactory().WithPageNumbers(*showPageNumber)
 		if *headerImg != "" {
-			factory.WithHeaderImage(pkg.LoadImageBase64(*headerImg))
+			factory.WithHeaderImage(core.LoadImageBase64(*headerImg))
 		}
 		if *footerImg != "" {
-			factory.WithFooterImage(pkg.LoadImageBase64(*footerImg))
+			factory.WithFooterImage(core.LoadImageBase64(*footerImg))
 		}
 		if *baseImg != "" {
-			factory.WithBaseImage(pkg.LoadImageBase64(*baseImg))
+			factory.WithBaseImage(core.LoadImageBase64(*baseImg))
 		}
 
 		_, err := pdf.NewPDFRenderer(report, tmpl, factory).
