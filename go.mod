@@ -3,7 +3,7 @@ module github.com/ozgen/goreportx
 go 1.24.0
 
 require (
-	github.com/signintech/gopdf v0.33.0
+	github.com/signintech/gopdf v0.34.0
 	github.com/stretchr/testify v1.11.1
 	github.com/wcharczuk/go-chart/v2 v2.1.2
 	golang.org/x/net v0.48.0
